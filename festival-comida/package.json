@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "sync": "prisma db pull && prisma generate"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
