@@ -1,4 +1,4 @@
-import { Pedido } from "../entities/Pedido.js";
+import type { Pedido } from "../entities/Pedido.js";
 
 export interface IPedidosRepository {
   findAll(filters?: {
@@ -13,6 +13,8 @@ export interface IPedidosRepository {
   }>;
 
   findById(id: number): Promise<Pedido | null>;
+  
+  existsAsistente(id: number): Promise<boolean>;
 
   create(pedido: {
     asistente_id: number;

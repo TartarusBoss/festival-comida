@@ -1,4 +1,4 @@
-import { Producto } from "../entities/Producto.js";
+import type { Producto } from "../entities/Producto.js"; //va el type porque solo necesito comprobar los tipos, no necesito importar codigo ni nada
 
 export interface IProductosRepository {
   findAll(filters?: {
