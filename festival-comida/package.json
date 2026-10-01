@@ -2,7 +2,8 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "sync": "prisma db pull && prisma generate",
-    "typecheck": "tsc --noEmit --target ES2022 --module NodeNext --moduleResolution NodeNext --strict --skipLibCheck src/app.ts"
+    "typecheck": "tsc --noEmit --target ES2022 --module NodeNext --moduleResolution NodeNext --strict --skipLibCheck src/app.ts",
+    "test": "node --import tsx --test tests/use-cases.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
