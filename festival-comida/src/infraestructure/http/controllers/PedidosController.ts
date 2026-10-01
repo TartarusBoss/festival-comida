@@ -41,6 +41,19 @@ export class PedidosController {
           ? String(req.query.estado)
           : undefined;
 
+      if (
+        !Number.isInteger(page) ||
+        page <= 0 ||
+        !Number.isInteger(limit) ||
+        limit <= 0 ||
+        limit > 50
+      ) {
+        return res.status(400).json({
+          error:
+            "Los parámetros page y limit deben ser enteros positivos y limit no puede ser mayor a 50",
+        });
+      }
+
       const filters: {
         page: number;
         limit: number;
