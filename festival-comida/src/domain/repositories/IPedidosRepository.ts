@@ -1,5 +1,10 @@
 import type { Pedido } from "../entities/Pedido.js";
 
+export type CancelPedidoResult =
+  | { status: "CANCELLED"; pedido: Pedido }
+  | { status: "NOT_FOUND" }
+  | { status: "DELIVERED" };
+
 export interface IPedidosRepository {
   findAll(filters?: {
     asistente_id?: number;
@@ -16,15 +21,15 @@ export interface IPedidosRepository {
   
   existsAsistente(id: number): Promise<boolean>;
 
-  create(pedido: {
+  createWithStock(pedido: {
     asistente_id: number;
     producto_id: number;
     cantidad: number;
     total: number;
     estado: string;
-  }): Promise<Pedido>;
+  }): Promise<Pedido | null>;
 
   updateEstado(id: number, estado: string): Promise<Pedido>;
 
-  delete(id: number): Promise<Pedido>;
+  cancelAndRestoreStock(id: number): Promise<CancelPedidoResult>;
 }

@@ -7,54 +7,55 @@ export class CreatePedidoUseCase {
     private readonly productosRepository: IProductosRepository,
   ) {}
 
-  async execute(input: {
-    asistente_id: number;
-    producto_id: number;
-    cantidad: number;
-  }) {
+  async execute(input: unknown) {
+    if (input === null || typeof input !== "object" || Array.isArray(input)) {
+      throw new Error("INVALID_DATA");
+    }
+
+    const { asistente_id, producto_id, cantidad } = input as Record<string, unknown>;
+
     if (
-      !Number.isInteger(input.asistente_id) ||
-      !Number.isInteger(input.producto_id) ||
-      !Number.isInteger(input.cantidad)
+      !Number.isInteger(asistente_id) ||
+      !Number.isInteger(producto_id) ||
+      !Number.isInteger(cantidad)
     ) {
       throw new Error("INVALID_DATA");
     }
 
-    if (input.cantidad < 1 || input.cantidad > 10) {
+    if ((cantidad as number) < 1 || (cantidad as number) > 10) {
       throw new Error("INVALID_CANTIDAD");
     }
 
     const asistenteExiste =
-      await this.pedidosRepository.existsAsistente(input.asistente_id);
+      await this.pedidosRepository.existsAsistente(asistente_id as number);
 
     if (!asistenteExiste) {
       throw new Error("ASISTENTE_NOT_FOUND");
     }
 
-    const producto = await this.productosRepository.findById(input.producto_id);
+    const producto = await this.productosRepository.findById(producto_id as number);
 
     if (!producto) {
       throw new Error("PRODUCTO_NOT_FOUND");
     }
 
-    if (input.cantidad > producto.stock) {
+    if ((cantidad as number) > producto.stock) {
       throw new Error("INSUFFICIENT_STOCK");
     }
 
-    const total = producto.precio * input.cantidad;
+    const total = producto.precio * (cantidad as number);
 
-    const pedido = await this.pedidosRepository.create({
-        asistente_id: input.asistente_id,
-        producto_id: input.producto_id,
-        cantidad: input.cantidad,
+    const pedido = await this.pedidosRepository.createWithStock({
+        asistente_id: asistente_id as number,
+        producto_id: producto_id as number,
+        cantidad: cantidad as number,
         total,
         estado: "PENDIENTE",
     });
 
-    await this.productosRepository.updateStock(
-        producto.id,
-        producto.stock - input.cantidad,
-    );
+    if (!pedido) {
+      throw new Error("INSUFFICIENT_STOCK");
+    }
 
     return pedido;
   }

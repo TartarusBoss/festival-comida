@@ -38,10 +38,7 @@ const updatePedidoEstadoUseCase = new UpdatePedidoEstadoUseCase(
   pedidosRepository,
 );
 
-const deletePedidoUseCase = new DeletePedidoUseCase(
-  pedidosRepository,
-  productosRepository,
-);
+const deletePedidoUseCase = new DeletePedidoUseCase(pedidosRepository);
 
 const getProductosUseCase = new GetProductosUseCase(productosRepository);
 const getProductoByIdUseCase = new GetProductoByIdUseCase(productosRepository);

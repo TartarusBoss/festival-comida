@@ -13,6 +13,23 @@ export class GetPedidosUseCase {
     const page = filters?.page ?? 1;
     const limit = filters?.limit ?? 10;
 
+    if (!Number.isInteger(page) || page <= 0 || !Number.isInteger(limit) || limit <= 0 || limit > 50) {
+      throw new Error("INVALID_PAGINATION");
+    }
+
+    if (filters?.asistente_id !== undefined && (!Number.isInteger(filters.asistente_id) || filters.asistente_id <= 0)) {
+      throw new Error("INVALID_ASISTENTE_ID");
+    }
+
+    if (filters?.producto_id !== undefined && (!Number.isInteger(filters.producto_id) || filters.producto_id <= 0)) {
+      throw new Error("INVALID_PRODUCTO_ID");
+    }
+
+    if (filters?.estado !== undefined && filters.estado !== "PENDIENTE" && filters.estado !== "ENTREGADO") {
+      throw new Error("INVALID_ESTADO");
+    }
+
+
     const repositoryFilters: {
       asistente_id?: number;
       producto_id?: number;

@@ -10,6 +10,15 @@ export class GetProductosUseCase {
 	}) {
 		const page = filters?.page ?? 1;
 		const limit = filters?.limit ?? 10;
+
+		if (!Number.isInteger(page) || page <= 0 || !Number.isInteger(limit) || limit <= 0 || limit > 50) {
+			throw new Error("INVALID_PAGINATION");
+		}
+
+		if (filters?.zona_id !== undefined && (!Number.isInteger(filters.zona_id) || filters.zona_id <= 0)) {
+			throw new Error("INVALID_ZONA_ID");
+		}
+
 		const repositoryFilters: {
 			zona_id?: number;
 			page: number;

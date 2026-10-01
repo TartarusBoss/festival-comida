@@ -68,23 +68,4 @@ export class PrismaProductosRepository implements IProductosRepository {
     };
   }
 
-  async updateStock(id: number, stock: number): Promise<Producto> {
-    const producto = await prisma.productos_comida.update({
-      where: {
-        id,
-      },
-      data: {
-        stock,
-      },
-    });
-
-    return {
-      id: producto.id,
-      nombre: producto.nombre,
-      zona_id: producto.zona_id,
-      precio: producto.precio,
-      stock: producto.stock,
-      state: producto.state as "ACTIVE" | "REMOVED",
-    };
-  }
 }

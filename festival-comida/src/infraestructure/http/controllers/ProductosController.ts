@@ -15,19 +15,6 @@ export class ProductosController {
 			? undefined
 			: Number(req.query.zona_id);
 
-		if (
-			!Number.isInteger(page) || page <= 0 ||
-			!Number.isInteger(limit) || limit <= 0 || limit > 50
-		) {
-			return res.status(400).json({
-				error: "page debe ser positivo y limit debe estar entre 1 y 50",
-			});
-		}
-
-		if (zona_id !== undefined && (!Number.isInteger(zona_id) || zona_id <= 0)) {
-			return res.status(400).json({ error: "zona_id debe ser un entero positivo" });
-		}
-
 		try {
 			const result = await this.getProductosUseCase.execute({
 				page,
@@ -36,6 +23,10 @@ export class ProductosController {
 			});
 			return res.status(200).json(result);
 		} catch (error) {
+			if (error instanceof Error && error.message.startsWith("INVALID_")) {
+				return res.status(400).json({ error: "Parámetros de consulta no válidos" });
+			}
+
 			console.error(error);
 			return res.status(500).json({ error: "Error interno del servidor" });
 		}
