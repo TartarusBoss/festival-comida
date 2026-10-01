@@ -16,25 +16,30 @@ export class PedidosController {
 
   async getAll(req: Request, res: Response) {
     try {
-      const page = req.query.page
-        ? Number(req.query.page)
-        : 1;
+      const page =
+        req.query.page !== undefined
+          ? Number(req.query.page)
+          : 1;
 
-      const limit = req.query.limit
-        ? Number(req.query.limit)
-        : 10;
+      const limit =
+        req.query.limit !== undefined
+          ? Number(req.query.limit)
+          : 10;
 
-      const asistente_id = req.query.asistente_id
-        ? Number(req.query.asistente_id)
-        : undefined;
+      const asistente_id =
+        req.query.asistente_id !== undefined
+          ? Number(req.query.asistente_id)
+          : undefined;
 
-      const producto_id = req.query.producto_id
-        ? Number(req.query.producto_id)
-        : undefined;
+      const producto_id =
+        req.query.producto_id !== undefined
+          ? Number(req.query.producto_id)
+          : undefined;
 
-      const estado = req.query.estado
-        ? String(req.query.estado)
-        : undefined;
+      const estado =
+        req.query.estado !== undefined
+          ? String(req.query.estado)
+          : undefined;
 
       if (
         !Number.isInteger(page) ||
