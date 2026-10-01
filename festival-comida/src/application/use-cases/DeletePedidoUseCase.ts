@@ -1,11 +1,7 @@
 import type { IPedidosRepository } from "../../domain/repositories/IPedidosRepository.js";
-import type { IProductosRepository } from "../../domain/repositories/IProductosRepository.js";
 
 export class DeletePedidoUseCase {
-  constructor(
-    private readonly pedidosRepository: IPedidosRepository,
-    private readonly productosRepository: IProductosRepository,
-  ) {}
+  constructor(private readonly pedidosRepository: IPedidosRepository) {}
 
   async execute(id: number) {
     const pedido = await this.pedidosRepository.findById(id);
@@ -18,17 +14,16 @@ export class DeletePedidoUseCase {
       throw new Error("PEDIDO_ALREADY_DELIVERED");
     }
 
-    const producto = await this.productosRepository.findById(pedido.producto_id);
+    const result = await this.pedidosRepository.cancelAndRestoreStock(id);
 
-    if (!producto) {
-        throw new Error("PRODUCTO_NOT_FOUND");
+    if (result.status === "NOT_FOUND") {
+      throw new Error("PEDIDO_NOT_FOUND");
     }
 
-    const nuevoStock = producto.stock + pedido.cantidad;
+    if (result.status === "DELIVERED") {
+      throw new Error("PEDIDO_ALREADY_DELIVERED");
+    }
 
-    await this.productosRepository.updateStock(producto.id, nuevoStock);
-
-    return await this.pedidosRepository.delete(id);
-
+    return result.pedido;
   }
 }

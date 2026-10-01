@@ -11,6 +11,4 @@ export interface IProductosRepository {
   }>;
 
   findById(id: number): Promise<Producto | null>;
-
-  updateStock(id: number, stock: number): Promise<Producto>;
 }

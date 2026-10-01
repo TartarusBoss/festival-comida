@@ -41,47 +41,6 @@ export class PedidosController {
           ? String(req.query.estado)
           : undefined;
 
-      if (
-        !Number.isInteger(page) ||
-        page <= 0 ||
-        !Number.isInteger(limit) ||
-        limit <= 0 ||
-        limit > 50
-      ) {
-        return res.status(400).json({
-          error:
-            "Los parámetros page y limit deben ser enteros positivos y limit no puede ser mayor a 50",
-        });
-      }
-
-      if (
-        asistente_id !== undefined &&
-        (!Number.isInteger(asistente_id) || asistente_id <= 0)
-      ) {
-        return res.status(400).json({
-          error: "asistente_id debe ser un entero positivo",
-        });
-      }
-
-      if (
-        producto_id !== undefined &&
-        (!Number.isInteger(producto_id) || producto_id <= 0)
-      ) {
-        return res.status(400).json({
-          error: "producto_id debe ser un entero positivo",
-        });
-      }
-
-      if (
-        estado !== undefined &&
-        estado !== "PENDIENTE" &&
-        estado !== "ENTREGADO"
-      ) {
-        return res.status(400).json({
-          error: "estado debe ser PENDIENTE o ENTREGADO",
-        });
-      }
-
       const filters: {
         page: number;
         limit: number;
@@ -109,6 +68,10 @@ export class PedidosController {
 
       return res.status(200).json(result);
     } catch (error) {
+      if (error instanceof Error && error.message.startsWith("INVALID_")) {
+        return res.status(400).json({ error: "Parámetros de consulta no válidos" });
+      }
+
       console.error(error);
 
       return res.status(500).json({
@@ -149,42 +112,7 @@ export class PedidosController {
 
   async create(req: Request, res: Response) {
     try {
-      const body = req.body;
-
-      if (
-        body === null ||
-        typeof body !== "object" ||
-        Array.isArray(body)
-      ) {
-        return res.status(400).json({
-          error: "El cuerpo de la solicitud debe ser un objeto",
-        });
-      }
-
-      const { asistente_id, producto_id, cantidad } = body;
-
-      if (
-        !Number.isInteger(asistente_id) ||
-        !Number.isInteger(producto_id) ||
-        !Number.isInteger(cantidad)
-      ) {
-        return res.status(400).json({
-          error:
-            "asistente_id, producto_id y cantidad deben ser enteros",
-        });
-      }
-
-      if (cantidad < 1 || cantidad > 10) {
-        return res.status(400).json({
-          error: "La cantidad debe estar entre 1 y 10",
-        });
-      }
-
-      const pedido = await this.createPedidoUseCase.execute({
-        asistente_id,
-        producto_id,
-        cantidad,
-      });
+      const pedido = await this.createPedidoUseCase.execute(req.body);
 
       return res.status(201).json({
         data: pedido,
@@ -233,44 +161,9 @@ export class PedidosController {
         });
       }
 
-      // Primero verificamos que el pedido exista.
-      await this.getPedidoByIdUseCase.execute(id);
-
-      const body = req.body;
-
-      if (
-        body === null ||
-        typeof body !== "object" ||
-        Array.isArray(body)
-      ) {
-        return res.status(400).json({
-          error: "El cuerpo de la solicitud debe ser un objeto",
-        });
-      }
-
-      const fields = Object.keys(body);
-
-      if (
-        fields.length !== 1 ||
-        fields[0] !== "estado"
-      ) {
-        return res.status(400).json({
-          error: "Solo se puede modificar el campo estado",
-        });
-      }
-
-      if (
-        body.estado !== "PENDIENTE" &&
-        body.estado !== "ENTREGADO"
-      ) {
-        return res.status(400).json({
-          error: "estado debe ser PENDIENTE o ENTREGADO",
-        });
-      }
-
       const pedido = await this.updatePedidoEstadoUseCase.execute(
         id,
-        body.estado,
+        req.body,
       );
 
       return res.status(200).json({
@@ -285,8 +178,9 @@ export class PedidosController {
             });
 
           case "INVALID_ESTADO":
+          case "INVALID_PATCH":
             return res.status(400).json({
-              error: "estado debe ser PENDIENTE o ENTREGADO",
+              error: "Solo se permite estado con valor PENDIENTE o ENTREGADO",
             });
         }
       }
@@ -328,10 +222,6 @@ export class PedidosController {
                 "No se puede cancelar un pedido que ya fue entregado",
             });
 
-          case "PRODUCTO_NOT_FOUND":
-            return res.status(404).json({
-              error: "El producto asociado no existe",
-            });
         }
       }
 
