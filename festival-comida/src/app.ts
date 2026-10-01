@@ -6,6 +6,7 @@ import { PedidosController } from "./infraestructure/http/controllers/PedidosCon
 import { ProductosController } from "./infraestructure/http/controllers/ProductosController.js";
 import { createPedidosRoutes } from "./infraestructure/http/routes/pedidosRoutes.js";
 import { createProductosRoutes } from "./infraestructure/http/routes/productosRoutes.js";
+import { errorHandler, notFoundHandler } from "./infraestructure/http/middleware/errorHandlers.js";
 
 import { PrismaPedidosRepository } from "./infraestructure/repositories/PrismaPedidosRepository.js";
 import { PrismaProductosRepository } from "./infraestructure/repositories/PrismaProductosRepository.js";
@@ -66,6 +67,8 @@ const productosRoutes = createProductosRoutes(productosController);
 
 app.use("/api/pedidos-comida", pedidosRoutes);
 app.use("/api/productos-comida", productosRoutes);
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3000;
 

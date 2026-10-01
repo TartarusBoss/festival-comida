@@ -14,6 +14,7 @@ import { PedidosController } from "../src/infraestructure/http/controllers/Pedid
 import { ProductosController } from "../src/infraestructure/http/controllers/ProductosController.js";
 import { createPedidosRoutes } from "../src/infraestructure/http/routes/pedidosRoutes.js";
 import { createProductosRoutes } from "../src/infraestructure/http/routes/productosRoutes.js";
+import { errorHandler, notFoundHandler } from "../src/infraestructure/http/middleware/errorHandlers.js";
 
 type Handler = (...args: unknown[]) => Promise<unknown>;
 
@@ -45,6 +46,8 @@ async function withApi(handlers: Handlers, run: (baseUrl: string) => Promise<voi
 
   app.use("/api/pedidos-comida", createPedidosRoutes(pedidosController));
   app.use("/api/productos-comida", createProductosRoutes(productosController));
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   const server = createServer(app);
   await new Promise<void>((resolve) => server.listen(0, resolve));
@@ -60,11 +63,12 @@ async function withApi(handlers: Handlers, run: (baseUrl: string) => Promise<voi
   }
 }
 
-async function assertError(response: Response, status: number) {
+async function assertError(response: Response, status: number): Promise<{ error: string }> {
   assert.equal(response.status, status);
   const body = await response.json() as { error?: unknown };
   assert.equal(typeof body.error, "string");
   assert.ok(body.error.length > 0);
+  return body as { error: string };
 }
 
 test("listados inválidos responden 400 con error JSON", async () => {
@@ -112,5 +116,24 @@ test("cancelar un pedido entregado responde 409 con error JSON", async () => {
     await assertError(await fetch(`${baseUrl}/api/pedidos-comida/10`, {
       method: "DELETE",
     }), 409);
+  });
+});
+
+test("rutas desconocidas responden 404 con error JSON", async () => {
+  await withApi({}, async (baseUrl) => {
+    await assertError(await fetch(`${baseUrl}/api/no-existe`), 404);
+  });
+});
+
+test("JSON mal formado responde 400 con error JSON sin stack trace", async () => {
+  await withApi({}, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/pedidos-comida`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{",
+    });
+
+    const body = await assertError(response, 400);
+    assert.equal(body.error.includes("SyntaxError"), false);
   });
 });
